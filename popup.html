@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <title>Chat Exporter</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --radius: 10px;
+      --gap: 12px;
+      --text: #1a1a2e;
+      --sub: #6b7280;
+      --border: #e5e7eb;
+      --bg: #f9fafb;
+      --white: #ffffff;
+      --ins-grad: linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045);
+      --zalo-color: #0068ff;
+      --green: #10b981;
+      --red: #ef4444;
+      --yellow: #f59e0b;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 13px;
+      width: 380px;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    /* ── Header ──────────────────────────────────────────────────────── */
+    .header {
+      padding: 14px 16px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--white);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .brand {
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .brand-icon { font-size: 18px; }
+
+    .platform-badge {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 20px;
+      letter-spacing: 0.2px;
+    }
+
+    .platform-badge.instagram {
+      background: #fce7f3;
+      color: #9d174d;
+    }
+
+    .platform-badge.zalo {
+      background: #dbeafe;
+      color: #1d4ed8;
+    }
+
+    .platform-badge.none {
+      background: #f3f4f6;
+      color: var(--sub);
+    }
+
+    /* ── Conversation card ───────────────────────────────────────────── */
+    .conv-card {
+      margin: var(--gap) var(--gap) 0;
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 11px 14px;
+      display: flex;
+      align-items: center;
+      gap: 11px;
+    }
+
+    .conv-avatar {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      font-weight: 700;
+      color: #fff;
+      flex-shrink: 0;
+      background: var(--ins-grad);
+    }
+
+    .conv-avatar.zalo { background: var(--zalo-color); }
+    .conv-avatar.none { background: #d1d5db; color: #6b7280; }
+
+    .conv-info { flex: 1; min-width: 0; }
+
+    .conv-name {
+      font-weight: 600;
+      font-size: 14px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .conv-sub {
+      font-size: 11px;
+      color: var(--sub);
+      margin-top: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* ── Settings ────────────────────────────────────────────────────── */
+    .settings-panel {
+      margin: var(--gap) var(--gap) 0;
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+
+    .settings-toggle {
+      width: 100%;
+      background: none;
+      border: none;
+      padding: 11px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--sub);
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+    }
+
+    .settings-toggle:hover { background: #f9fafb; }
+
+    .settings-toggle .arrow {
+      transition: transform 0.2s;
+      font-size: 10px;
+    }
+
+    .settings-toggle.open .arrow { transform: rotate(180deg); }
+
+    .settings-body {
+      display: none;
+      flex-direction: column;
+      gap: 14px;
+      padding: 4px 14px 14px;
+      border-top: 1px solid var(--border);
+    }
+
+    .settings-body.open { display: flex; }
+
+    .setting-row { display: flex; flex-direction: column; gap: 6px; }
+
+    .setting-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .setting-hint {
+      font-size: 11px;
+      color: var(--sub);
+      margin-top: -4px;
+    }
+
+    /* Speed selector */
+    .speed-btns {
+      display: flex;
+      gap: 6px;
+    }
+
+    .speed-btn {
+      flex: 1;
+      border: 1.5px solid var(--border);
+      background: var(--white);
+      border-radius: 8px;
+      padding: 7px 4px;
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--sub);
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.15s;
+      line-height: 1.3;
+    }
+
+    .speed-btn .speed-icon { display: block; font-size: 16px; margin-bottom: 2px; }
+
+    .speed-btn:hover { border-color: #9ca3af; color: var(--text); }
+
+    .speed-btn.active {
+      border-color: #6366f1;
+      background: #eef2ff;
+      color: #4338ca;
+      font-weight: 600;
+    }
+
+    /* Depth selector */
+    .depth-btns { display: flex; gap: 6px; }
+
+    .depth-btn {
+      flex: 1;
+      border: 1.5px solid var(--border);
+      background: var(--white);
+      border-radius: 8px;
+      padding: 6px 4px;
+      font-size: 11px;
+      color: var(--sub);
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.15s;
+    }
+
+    .depth-btn:hover { border-color: #9ca3af; color: var(--text); }
+
+    .depth-btn.active { border-color: #6366f1; background: #eef2ff; color: #4338ca; font-weight: 600; }
+
+    /* Format checkboxes */
+    .format-checks { display: flex; gap: 10px; }
+
+    .format-check {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .format-check input { width: 14px; height: 14px; accent-color: #6366f1; cursor: pointer; }
+
+    /* ── Export button ────────────────────────────────────────────────── */
+    .export-btn {
+      margin: var(--gap);
+      width: calc(100% - 24px);
+      border: none;
+      border-radius: var(--radius);
+      padding: 12px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      letter-spacing: 0.2px;
+      transition: opacity 0.15s, transform 0.1s;
+      background: var(--ins-grad);
+      color: #fff;
+    }
+
+    .export-btn.zalo { background: var(--zalo-color); }
+
+    .export-btn:hover:not(:disabled) { opacity: 0.88; }
+    .export-btn:active:not(:disabled) { transform: scale(0.98); }
+    .export-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    /* ── Progress ─────────────────────────────────────────────────────── */
+    .progress-section {
+      margin: 0 var(--gap) var(--gap);
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px 14px;
+      display: none;
+    }
+
+    .progress-section.visible { display: block; }
+
+    .progress-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 8px;
+    }
+
+    .progress-status {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .progress-count {
+      font-size: 20px;
+      font-weight: 700;
+      color: #6366f1;
+    }
+
+    .progress-count span { font-size: 11px; font-weight: 400; color: var(--sub); margin-left: 2px; }
+
+    .progress-bar-wrap {
+      height: 6px;
+      background: #e5e7eb;
+      border-radius: 999px;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #6366f1, #8b5cf6);
+      border-radius: 999px;
+      transition: width 0.4s ease;
+      width: 0%;
+    }
+
+    .progress-bar-fill.indeterminate {
+      width: 40% !important;
+      animation: shimmer 1.2s ease-in-out infinite;
+    }
+
+    @keyframes shimmer {
+      0%   { transform: translateX(-100%); }
+      100% { transform: translateX(300%); }
+    }
+
+    .progress-text {
+      font-size: 11px;
+      color: var(--sub);
+      min-height: 16px;
+    }
+
+    /* ── Results ──────────────────────────────────────────────────────── */
+    .results-section {
+      margin: 0 var(--gap) var(--gap);
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      display: none;
+    }
+
+    .results-section.visible { display: block; }
+
+    .results-stats {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .stat-item {
+      flex: 1;
+      padding: 10px 6px;
+      text-align: center;
+      border-right: 1px solid var(--border);
+    }
+
+    .stat-item:last-child { border-right: none; }
+
+    .stat-value {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1;
+    }
+
+    .stat-label {
+      font-size: 10px;
+      color: var(--sub);
+      margin-top: 3px;
+    }
+
+    .results-actions { padding: 10px 12px; display: flex; gap: 8px; }
+
+    .dl-btn {
+      flex: 1;
+      border: none;
+      border-radius: 8px;
+      padding: 9px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+
+    .dl-btn:hover { opacity: 0.85; }
+    .dl-btn.json { background: #eff6ff; color: #1d4ed8; }
+    .dl-btn.md   { background: #f5f3ff; color: #5b21b6; }
+
+    /* ── Unsupported / Error states ──────────────────────────────────── */
+    .unsupported {
+      margin: var(--gap);
+      padding: 14px;
+      background: #fffbeb;
+      border: 1px solid #fde68a;
+      border-radius: var(--radius);
+      display: none;
+    }
+
+    .unsupported.visible { display: block; }
+    .unsupported-title { font-weight: 700; font-size: 13px; margin-bottom: 6px; }
+    .unsupported-list { padding-left: 16px; }
+    .unsupported-list li { font-size: 12px; color: var(--sub); line-height: 1.8; }
+
+    /* ── Footer ───────────────────────────────────────────────────────── */
+    footer {
+      padding: 8px 16px 10px;
+      font-size: 10px;
+      color: #d1d5db;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="header">
+    <div class="brand">
+      <span class="brand-icon">💬</span>
+      Chat Exporter
+    </div>
+    <div class="platform-badge none" id="platformBadge">Đang kiểm tra...</div>
+  </div>
+
+  <!-- Conversation info -->
+  <div class="conv-card" id="convCard">
+    <div class="conv-avatar none" id="convAvatar">?</div>
+    <div class="conv-info">
+      <div class="conv-name" id="convName">Đang tải trang...</div>
+      <div class="conv-sub"  id="convSub">Mở một cuộc trò chuyện để bắt đầu</div>
+    </div>
+  </div>
+
+  <!-- Unsupported page warning -->
+  <div class="unsupported" id="unsupportedBox">
+    <div class="unsupported-title">⚠️ Trang này không được hỗ trợ</div>
+    <ul class="unsupported-list">
+      <li>Instagram: mở một cuộc trò chuyện DM (<b>instagram.com/direct/t/...</b>)</li>
+      <li>Zalo: mở <b>chat.zalo.me</b> và chọn một đoạn chat</li>
+    </ul>
+  </div>
+
+  <!-- Settings -->
+  <div class="settings-panel">
+    <button class="settings-toggle" id="settingsToggle">
+      <span>⚙ Cài đặt nâng cao</span>
+      <span class="arrow">▼</span>
+    </button>
+    <div class="settings-body" id="settingsBody">
+
+      <div class="setting-row">
+        <div class="setting-label">Tốc độ tải</div>
+        <div class="setting-hint">Chậm hơn = ít bỏ sót hơn, nhưng mất nhiều thời gian hơn</div>
+        <div class="speed-btns">
+          <button class="speed-btn" data-ms="1500" data-label="fast">
+            <span class="speed-icon">⚡</span>Nhanh
+          </button>
+          <button class="speed-btn active" data-ms="3000" data-label="normal">
+            <span class="speed-icon">🚀</span>Bình thường
+          </button>
+          <button class="speed-btn" data-ms="5000" data-label="slow">
+            <span class="speed-icon">🐢</span>Kỹ lưỡng
+          </button>
+        </div>
+      </div>
+
+      <div class="setting-row">
+        <div class="setting-label">Độ sâu tải</div>
+        <div class="setting-hint">Số lần thử khi không tìm được tin nhắn mới</div>
+        <div class="depth-btns">
+          <button class="depth-btn" data-retries="3">Nhanh<br><small>~3 lần</small></button>
+          <button class="depth-btn active" data-retries="8">Bình thường<br><small>~8 lần</small></button>
+          <button class="depth-btn" data-retries="20">Toàn bộ<br><small>~20 lần</small></button>
+        </div>
+      </div>
+
+      <div class="setting-row">
+        <div class="setting-label">Định dạng xuất</div>
+        <div class="format-checks">
+          <label class="format-check">
+            <input type="checkbox" id="fmtJson" checked />
+            JSON (dữ liệu đầy đủ)
+          </label>
+          <label class="format-check">
+            <input type="checkbox" id="fmtMd" checked />
+            Markdown (dễ đọc)
+          </label>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Export button -->
+  <button class="export-btn" id="exportBtn" disabled>Xuất cuộc trò chuyện</button>
+
+  <!-- Progress -->
+  <div class="progress-section" id="progressSection">
+    <div class="progress-header">
+      <div class="progress-status" id="progressStatus">Đang chuẩn bị...</div>
+      <div class="progress-count" id="progressCount">0<span>tin nhắn</span></div>
+    </div>
+    <div class="progress-bar-wrap">
+      <div class="progress-bar-fill" id="progressFill"></div>
+    </div>
+    <div class="progress-text" id="progressText"></div>
+  </div>
+
+  <!-- Results -->
+  <div class="results-section" id="resultsSection">
+    <div class="results-stats" id="statsRow">
+      <!-- injected by JS -->
+    </div>
+    <div class="results-actions">
+      <button class="dl-btn json" id="dlJson">⬇ JSON</button>
+      <button class="dl-btn md"   id="dlMd">⬇ Markdown</button>
+    </div>
+  </div>
+
+  <footer>Dữ liệu chỉ lưu trên máy bạn · Không gửi lên server</footer>
+
+  <script src="popup.js"></script>
+</body>
+</html>
